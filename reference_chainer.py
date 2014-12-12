@@ -120,9 +120,10 @@ class procurement_order(osv.osv):
         if procurement.origin:
             order_db = self.pool.get('sale.order')
             order_ids = order_db.search(cr, uid, [('name','=',procurement.origin)])
-            order = order_db.browse(cr, uid, order_ids, context=context)[0]
-            if order and order.client_order_ref:
-                po_vals.update({'partner_ref': order.client_order_ref})
+            if order_ids:
+                for order in order_db.browse(cr, uid, order_ids, context=context):
+                    if order.client_order_ref:
+                        po_vals.update({'partner_ref': order.client_order_ref})
 
         return super(procurement_order,self).create_procurement_purchase_order(cr, uid, procurement, po_vals, line_vals, context)
 
