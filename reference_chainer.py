@@ -1,4 +1,5 @@
 from openerp.osv import osv, fields
+import re
 
 ##############################################################################
 #
@@ -61,9 +62,6 @@ class stock_picking_out(osv.Model):
         'order_reference': fields.char('Order reference', required=False, readonly=False),
     }
 
-
-
-
 ##############################################################################
 #
 #    sale.order
@@ -91,10 +89,6 @@ class sale_order(osv.Model):
         result['order_reference'] = order.client_order_ref
         return result
 
-
-
-
-
 ##############################################################################
 #
 #    procurement.order
@@ -116,24 +110,14 @@ class procurement_order(osv.osv):
         chained during the automated Purchase Order creation.
         ------------------------------------------------------------------ '''
     def create_procurement_purchase_order(self, cr, uid, procurement, po_vals, line_vals, context=None):
-
         if procurement.origin:
             order_db = self.pool.get('sale.order')
-            order_ids = order_db.search(cr, uid, [('name','=',procurement.origin)])
-            if order_ids:
-                for order in order_db.browse(cr, uid, order_ids, context=context):
-                    if order.client_order_ref:
-                        po_vals.update({'partner_ref': order.client_order_ref})
+            sale_order_name = re.search('SO\d*', procurement.origin)
+            if sale_order_name:
+                order_ids = order_db.search(cr, uid, [('name','=',sale_order_name.group(0))])
+                if order_ids:
+                    for order in order_db.browse(cr, uid, order_ids, context=context):
+                        if order.client_order_ref:
+                            po_vals.update({'partner_ref': order.client_order_ref})
 
         return super(procurement_order,self).create_procurement_purchase_order(cr, uid, procurement, po_vals, line_vals, context)
-
-
-
-
-
-
-
-
-
-
-
